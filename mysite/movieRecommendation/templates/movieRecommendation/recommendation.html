@@ -1,0 +1,25 @@
+{% load movieRecommendation_extras %}
+
+<h2>Movies you've rated:</h2>
+<ul>
+    {% for movie in alreadyRatedMovies %}
+    <li>
+        <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+        <ul>
+            <li>{{ movieRatingDict|get_item:movie.movieID }}</li>
+        </ul>
+    </li>
+    {% endfor %}
+</ul>
+
+<h2>Recommended movies based on your ratings:</h2>
+<ul>
+    {% for movie in predictionsMovies %}
+    <li>
+        <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+        <ul>
+            <li>{{ movieRatingDict|get_item:movie.movieID }}</li>
+        </ul>
+    </li>
+    {% endfor %}
+</ul>
