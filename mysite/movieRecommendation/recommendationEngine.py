@@ -1,27 +1,42 @@
 import pandas as pd
 import numpy as np
 from scipy.sparse.linalg import svds
+from .readInitData import getMovieDataFrame, getRatingDataFrame, getPivotedDataFrame
 import sys
 
-""" Source:
+""" References:
+https://www.analyticsvidhya.com/blog/2018/06/comprehensive-guide-recommendation-engine-python/
 https://beckernick.github.io/matrix-factorization-recommender/
 """
 
 """ Example:
     ratingsDF = getRatingDataFrame()
     moviesDF = getMovieDataFrame()
-    predictionsDF = getMoviePredictionDataframe(ratingsDF)
+    pivotedRatingsDF = getPivotedDataFrame()
+    predictionsDF = getMoviePredictionDataframe(pivotedRatingsDF)
     alreadyRatedList, predictionsList = getRecommendations(predictionsDF, 837, moviesDF, ratingsDF, 10)
 """
 
+# Int, Int -> List (Int, Int), List (Int, int)
+def runRecEngine(userID, numRecommendations=10):
+
+    moviesDF = getMovieDataFrame()
+    pivotedRatingsDF = getPivotedDataFrame()
+    predictionsDF = getMoviePredictionDataframe(pivotedRatingsDF)
+    alreadyRatedList, predictionsList = getRecommendations(predictionsDF, userID, moviesDF, pivotedRatingsDF, numRecommendations)
+
+    return alreadyRatedList, predictionsList
+
+
 
 # Get movie recommendations for a specific user
-# -> List (Int, Int), List (Int, Int)
-def getRecommendations(predictionsDF, userID, moviesDF, originalRatingsDF, numRecommendations=10):
+# Returns a list of already rated movies (as tuple, where (movieID, rating))
+# Also returns a list of predicted movies that user will like as a tuple where (movieID, predictedRating)
+# DF, int, DF, DF, Int -> List (Int, Int), List (Int, Int)
+def getRecommendations(predictionsDF, userID, moviesDF, originalPivotedRatingsDF, numRecommendations):
     
     # Get the movies that the user had rated already 
-    alreadyRatedData = originalRatingsDF.iloc[[userID - 1]] 
-    print(alreadyRatedData) # TEST
+    alreadyRatedData = originalPivotedRatingsDF.iloc[[userID - 1]] 
     columns = list(alreadyRatedData)
     alreadyRatedMovies = [] # List (Int, Int) of movieID, rating tuple
     for movieID in columns:
@@ -48,6 +63,7 @@ def getRecommendations(predictionsDF, userID, moviesDF, originalRatingsDF, numRe
     return alreadyRatedMovies, predictionsList[:numRecommendations]
 
 
+
 # Checks to make sure length of predictions is equal to or longer than 
 # the requested amount of recommendations. If not, return the length
 # of the predictions
@@ -69,33 +85,11 @@ def inList(list, val):
     return False
 
 
-# Create DF for ratings from MovieLens database
-# -> DataFrame
-def getRatingDataFrame():
-    data = open('/Users/joyding/Documents/movie_recommender/ml-1m/ratings.dat', 'r')
-    ratingsList = [line.strip().split("::") for line in data.readlines()]
-    ratingColumnNames = ['userID', 'movieID', 'rating', 'timeStamp']
-    ratingsDF = pd.DataFrame(ratingsList, columns = ratingColumnNames, dtype = int)
-    ratingsDF = ratingsDF.pivot(index='userID', columns='movieID', values='rating').fillna(0)
-    return ratingsDF
-
-
-# Create DF for movies from MovieLens database
-# -> DataFrame
-def getMovieDataFrame():
-    data = open('/Users/joyding/Documents/movie_recommender/ml-1m/movies.dat', 'r', encoding = "latin-1")
-    moviesList = [line.strip().split("::") for line in data.readlines()]
-    movieColumnNames = ['movieID', 'title', 'genres']
-    moviesDF = pd.DataFrame(moviesList, columns = movieColumnNames)
-    moviesDF['movieID'] = moviesDF['movieID'].apply(pd.to_numeric)
-    return moviesDF
-
-
 # Get prediction dataframe of the ratings of movies each user might give
 # -> DataFrame
-def getMoviePredictionDataframe(ratingsDF):
-    # Turn ratingsDF into a matrix
-    ratingsMatrix  = ratingsDF.as_matrix()
+def getMoviePredictionDataframe(pivotedRatingsDF):
+    # Turn pivotedRatingsDF into a matrix
+    ratingsMatrix  = pivotedRatingsDF.as_matrix()
 
     # Demean (normalize by each user mean) data
     userMeanRatings = np.mean(ratingsMatrix, axis = 1)
@@ -111,6 +105,6 @@ def getMoviePredictionDataframe(ratingsDF):
     predictedRatingsMatrix = np.dot(np.dot(U, sigma), Vt) + userMeanRatings.reshape(-1, 1)
 
     # Predictions for all users as Data Frame
-    predictionsDF = pd.DataFrame(predictedRatingsMatrix, columns = ratingsDF.columns)
+    predictionsDF = pd.DataFrame(predictedRatingsMatrix, columns = pivotedRatingsDF.columns)
     
     return predictionsDF
