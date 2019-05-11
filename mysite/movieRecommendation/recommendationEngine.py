@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.sparse.linalg import svds
-from .readInitData import getMovieDataFrame, getRatingDataFrame, getPivotedDataFrame
+from .databaseToDataframe import getMovieDFFromDB, getRatingDFFromDB, getPivotedDataFrame
 import sys
 
 """ References:
@@ -20,7 +20,7 @@ https://beckernick.github.io/matrix-factorization-recommender/
 # Int, Int -> List (Int, Int), List (Int, int)
 def runRecEngine(userID, numRecommendations=10):
 
-    moviesDF = getMovieDataFrame()
+    moviesDF = getMovieDFFromDB()
     pivotedRatingsDF = getPivotedDataFrame()
     predictionsDF = getMoviePredictionDataframe(pivotedRatingsDF)
     alreadyRatedList, predictionsList = getRecommendations(predictionsDF, userID, moviesDF, pivotedRatingsDF, numRecommendations)

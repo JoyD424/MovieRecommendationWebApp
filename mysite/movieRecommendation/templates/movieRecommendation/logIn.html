@@ -1,0 +1,17 @@
+{% block content %}
+
+    <div class="container">
+
+        <form method="POST">
+
+        {% csrf_token %}
+        {{form.as_p}}
+        
+        <button style="background-color:blue; color:white" class="btn btn-outline-info" type="submit">Login</button>
+        </form>
+
+        Don't have an account? <a href="/signUp/" target="blank"><strong>Sign up</strong></a> here!
+        
+    </div>
+
+{% endblock %}
