@@ -1,0 +1,47 @@
+{% load movieRecommendation_extras %}
+
+<div><h1>Welcome to the Movie Recommendation Web App!</h1></div>
+
+<div>
+    <p>You are logged in as {{request.user.username}}.</p>
+    <p>Log out <a href="logOut/" target = blank> here </a></p>
+</div>
+
+<div> 
+    <h2>Movies you've rated:</h2>
+    {% if alreadyRatedMovies|length != 0 %}  
+        <ul>
+            {% for movie in alreadyRatedMovies %}
+                <li>
+                    <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                    <ul>
+                        <li>{{ movieRatingDict|get_item:movie.movieID }}</li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><i>Looks like you haven't rated any movies yet!</i> Click <a href="index/" target = blank> here</a> to start rating!</p>
+    {% endif %}
+</div>
+
+<div>
+    <h2>Recommended movies based on your ratings:</h2>
+
+    <form action="{% url 'homepage' %}" method="GET" value="{{request.GET.numRecs}}">
+        Number of Recommendations:<input type="text" name="numRecs" value={{request.GET.numRecs}} />
+        <input type="submit" name="refreshRecs" value="Refresh Recommendations" />
+    </form>
+
+    {% if predictionsMovies|length != 0 %} 
+        <ul>
+            {% for movie in predictionsMovies %}
+            <li>
+                <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><i>Rate some movies first to see your recommendations!</i> Click <a href="index/" target = blank> here</a> to start rating!</p>
+    {% endif %}
+</div>

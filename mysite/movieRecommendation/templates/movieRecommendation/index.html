@@ -1,7 +1,55 @@
-<ul>
-    {% for movie in allMovies %}
-    <li>
-        <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
-    </li>
-    {% endfor %}
-</ul>
+<div>
+    <div>
+        <a href="{% url 'homepage' %}"> <h3>Go back to homepage</h3> </a>
+    </div>
+
+    <div>
+        <form action="{% url 'index' %}" method="GET" value="{{request.GET.q}}">
+            <input type="text" name="q" value="{{request.GET.q}}" placeholder="Search"/>
+            <input type="submit" name="submitTitle" value="Search by Title"/>
+            <input type="submit" name="submitGenre" value="Search by Genre"/>
+
+            <div>
+                {% for capitalLetter in upperLetters %}
+                <input type="submit" name="submitStartsWith" value={{capitalLetter}} />
+                {% endfor %}
+            </div>
+
+        </form>
+    </div>
+    
+    {% if request.GET.q != '' and submitbutton not in upperLetters%}
+        {% if results %}
+            <h2>Results for "{{ request.GET.q }}"</h2>
+            <ul>
+                {% for movie in results %}
+                <li>
+                    <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            No search results for "{{ request.GET.q }}"
+        {% endif %}
+
+    {% elif submitbutton in upperLetters%}
+        <h2>{{ submitbutton }}</h2>    
+        <ul>
+            {% for movie in results %}
+            <li>
+                <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+            </li>
+            {% endfor %}
+        </ul>
+    
+    {% else %}
+        <ul>
+            {% for movie in results %}
+            <li>
+                <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+</div>

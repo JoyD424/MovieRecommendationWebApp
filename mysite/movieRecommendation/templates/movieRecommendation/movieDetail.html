@@ -1,3 +1,22 @@
+{% load movieRecommendation_extras %}
+
 <h1>{{ movie.movieTitle }}</h1>
 
 <h2>{{ movie.movieGenres }}</h2>
+
+<div>
+    {% if rating.rating == 0 %}
+        <p>Have you watched this movie? Rate it here!</p>
+    {% else %}
+        <p>You previously gave this movie a rating of {{ rating.rating }}.</p>
+        <p>You can change it here!</p>
+    {% endif %}
+    <form action="{% url 'movieDetail' movie.movieID %}" method="post">
+        {% csrf_token %}
+        {% for int in 5|tags_range %}
+            <input type="radio" name="rating" id="{{ int }}" value="{{ int }}" required>
+            <label for="{{ int }}">{{ int }}</label><br>
+        {% endfor %}
+        <input type="submit" value="Confirm Rating">
+    </form>
+</div>
