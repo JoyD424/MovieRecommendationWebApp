@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Movie, Rating, RecommendationHistory
 from .recommendationEngine import runRecEngine, getAlreadyRated
-from .helperFunctions import * 
+from .utils import * 
 from string import ascii_uppercase
 
 # Global Variable
