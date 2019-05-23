@@ -7,18 +7,11 @@ import sys
 
 
 """ References:
+https://medium.com/@paritosh_30025/recommendation-using-matrix-factorization-5223a8ee1f4
 https://www.analyticsvidhya.com/blog/2018/06/comprehensive-guide-recommendation-engine-python/
+https://towardsdatascience.com/how-to-build-a-simple-recommender-system-in-python-375093c3fb7d
 https://beckernick.github.io/matrix-factorization-recommender/
-"""
-
-
-
-""" Example:
-    ratingsDF = getRatingDataFrame()
-    moviesDF = getMovieDataFrame()
-    pivotedRatingsDF = getPivotedDataFrame()
-    predictionsDF = getMoviePredictionDataframe(pivotedRatingsDF)
-    alreadyRatedList, predictionsList = getRecommendations(predictionsDF, 837, moviesDF, ratingsDF, 10)
+https://machinelearningmastery.com/introduction-to-matrix-decompositions-for-machine-learning/
 """
 
 
@@ -45,18 +38,14 @@ def getAlreadyRated(userID):
 # DF -> List (Int, Int)
 def getAlreadyRatedList(userID, originalPivotedRatingsDF):
     try:
-        # print(list(originalPivotedRatingsDF.index.values))
         index = list(originalPivotedRatingsDF.index.values)[userID - 1]
-        print(index)
         alreadyRatedData = originalPivotedRatingsDF.loc[[index], : ] 
     except IndexError:
         # If the user has not rated any movies
         print("Index Error")
         return []
     columns = list(alreadyRatedData)
-    print(alreadyRatedData)
     index = list(alreadyRatedData.index.values)[0]
-    print(index)
     alreadyRatedMovies = [] # List (Int, Int) of movieID, rating tuple
     for movieID in columns:
         rating = int(alreadyRatedData.loc[index, movieID])
@@ -71,9 +60,6 @@ def getAlreadyRatedList(userID, originalPivotedRatingsDF):
 # Also returns a list of predicted movies that user will like as a tuple where (movieID, predictedRating)
 # DF, int, DF, DF, Int -> List (Int, Int), List (Int, Int)
 def getRecommendations(predictionsDF, userID, moviesDF, originalPivotedRatingsDF): #, numRecommendations):
-    # TEST:
-    print(originalPivotedRatingsDF)
-    print(predictionsDF)
     # Get the movies that the user had rated already
     alreadyRatedMovies = getAlreadyRatedList(userID, originalPivotedRatingsDF)
     if alreadyRatedMovies == []:
@@ -84,15 +70,13 @@ def getRecommendations(predictionsDF, userID, moviesDF, originalPivotedRatingsDF
     userPrediction = predictionsDF.iloc[[newUserID], : ].sort_values(by=newUserID, axis=1, ascending=False)
     columns = list(userPrediction)
     predictionsList = [] # List (Int, Int) of movieID, rating tuple
-    # num = 1
     for movieID in columns:
         if not inList(alreadyRatedMovies, movieID): # and num <= numRecommendations:
             predictedRating = round(userPrediction[movieID][newUserID], 4) 
             predictionsList.append((movieID, predictedRating))
-            # num += 1
     predictionsList.sort(key = lambda x: x[1], reverse = True)
 
-    return alreadyRatedMovies, predictionsList # predictionsList[:numRecommendations]
+    return alreadyRatedMovies, predictionsList 
 
 
 

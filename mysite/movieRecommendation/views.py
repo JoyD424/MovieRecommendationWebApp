@@ -30,7 +30,7 @@ def homepage(request):
     # If .recommendations haven't been added to object yet
     if recHistory.recommendations == '' or (request.method == "GET" and "refreshRecs" in request.GET):
 
-        print("No rec history. Adding one right now") # TEST
+        print("No rec history. Adding one right now")
         alreadyRatedList, predictionsList = runRecEngine(user_id)
         newPredictions = []
         for tuple in predictionsList:
@@ -45,11 +45,10 @@ def homepage(request):
         return render(request, 'movieRecommendation/homepage.html', {'alreadyRatedMovies': alreadyRatedMovies, 'predictionsMovies': predictionsMovies, 'movieRatingDict': movieRatingDict})
     
     if request.method == "GET":
-        print("GET request submitted for recs") # TEST
+        print("GET request submitted for recs")
         numRecs = request.GET.get('numRecs')
         
         if recHistory.recommendations != '':
-            print("Giving recs based on previous recHistory") # TEST
             alreadyRatedList = getAlreadyRated(user_id)
 
             try:
@@ -58,18 +57,7 @@ def homepage(request):
                 predictionsList = convertStrToLst(recHistory.recommendations)[:numRecs]
                 print(predictionsList) # TEST
             except (ValueError, TypeError):
-            # if numRecs is None:
                 predictionsList = convertStrToLst(recHistory.recommendations)[:DEFAULT_NUM_RECS]
-                print("NumRecs:", numRecs) # TEST
-                print(predictionsList) # TEST
-                # alreadyRatedList, predictionsList = runRecEngine(user_id)
-                # recHistory.recommendations = convertLstToStr(predictionsList)
-                # recHistory.save()
-            """else:
-                # alreadyRatedList, predictionsList = runRecEngine(user_id, int(numRecs))
-                print("NumRecs not none:", numRecs) # TEST
-                predictionsList = convertStrToLst(recHistory.recommendations)[:int(numRecs)]
-                print(predictionsList) # TEST"""
         
 
     else:
@@ -141,7 +129,6 @@ def movieDetail(request, movie_id):
         ratingValue = request.POST["rating"]
         rating.rating = int(ratingValue)
         rating.save()
-        # add message here
         return HttpResponseRedirect('/movieRecommendation/index')
     
     return render(request, 'movieRecommendation/movieDetail.html', {"movie": movie, "rating": rating})

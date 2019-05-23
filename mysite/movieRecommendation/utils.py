@@ -67,8 +67,6 @@ def getMoviesList(listTuple, dict):
         if movie.movieID not in dict.keys():
             dict[movie.movieID] = tuple[1]
 
-    """print(dict)
-    print(movie.movieID for movie in listMovie)"""
     return listMovie
 
 
@@ -80,6 +78,4 @@ def getPredMoviesList(listID):
         movie = get_object_or_404(Movie, movieID = id)
         listMovie.append(movie)
 
-    """print(dict)
-    print(movie.movieID for movie in listMovie)"""
     return listMovie
