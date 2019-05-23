@@ -1,47 +1,175 @@
 {% load movieRecommendation_extras %}
+{% load static %}
 
-<div><h1>Welcome to the Movie Recommendation Web App!</h1></div>
+<head>
+    <style>
+        /* Style for header */
+        html * {
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        }
+        .header {
+            text-align: center;
+            color: #0074D9;
+            background-color: black;
+            padding: 40px;
+            margin: 0px;
+            font-style: oblique;
+        }
 
-<div>
-    <p>You are logged in as {{request.user.username}}.</p>
-    <p>Log out <a href="logOut/" target = blank> here </a></p>
-</div>
+        /* Style for Toolbar + Dropdown Menu */
+        .toolbar {
+            list-style-type: none;
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            padding: 10px 0px 10px 0px;
+            flex-direction: row;
+            overflow: hide;
+            background-color: white;
+            color: lightseagreen;
+            border-bottom-style: groove;
+        }
+        li .greeting {
+            padding: 14px 16px;
+            text-decoration: none;
+        } 
+        .dropdown {
+            position: relative;
+            display: inline;
+        }
+        .dropdown-content {
+            display: none;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: #2ECC40;
+            padding: 14px 16px 14px 16px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+            position: absolute;
+            text-align: center;
+        }
 
-<div> 
-    <h2>Movies you've rated:</h2>
-    {% if alreadyRatedMovies|length != 0 %}  
-        <ul>
-            {% for movie in alreadyRatedMovies %}
+        /* Style for rated movies display */
+        .movies {
+            display: flex;
+            flex-direction: column;
+        }
+        .movies h2 {
+            color: lightseagreen;
+        }
+        .movieList {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            list-style-type: none;
+            overflow: scroll;
+            border-bottom-style: groove;
+
+        }
+        .movieList li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 30px 10px 30px;
+        }
+        a img {
+            display: inline-block;
+            margin-left: auto;
+        	margin-right: auto;
+        }
+        a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px 5px 10px;
+            display: inline;
+            font-style: oblique;
+        }
+        li p {
+            display: inline;
+        }
+
+        /* Submit Button style */
+        .submitBtn {
+            font-size: 14px;
+            padding: 5px 20px 5px 20px;
+            border: none;
+            background-color: skyblue;
+            margin: 10px;
+        }
+        .submitBtn:hover {
+            background-color: #0074D9;
+        }
+    </style>
+</head>
+
+<html>
+    <h1 class="header">Movie Recommender Homepage</h1>
+
+    <ul class="toolbar">
+        <li class="greeting"><p>Welcome, {{request.user.username}}!</p></li>
+        <li class="dropdown">
+            <p>Menu</p>
+            <div class="dropdown-content">
+                <a href="logOut/" target = blank> Log Out</a>
+                <a href="{% url 'index' %}"> Find movies</a>
+            </div>
+        </li>
+    </ul>
+    
+    
+    
+    <div class="movies"> 
+        <h2>Movies Rated:</h2>
+        {% if alreadyRatedMovies|length != 0 %}  
+            <ul class="movieList">
+                {% for movie in alreadyRatedMovies %}
+                    <li>
+                        <a href="{% url 'movieDetail' movie.movieID %}"> <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 80px;height: 120px;"> </a>
+                        <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                        <p>Rating: {{ movieRatingDict|get_item:movie.movieID }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p><i>Looks like you haven't rated any movies yet!</i> Click <a href="index/" target = blank> here</a> to start rating!</p>
+        {% endif %}
+    </div>
+    
+    
+    
+    <div class="movies">
+        <h2>Recommended Movies:</h2>
+    
+        <form action="{% url 'homepage' %}" method="GET" value="{{request.GET.numRecs}}">
+            Number of Recommendations: <input type="text" name="numRecs" value="{{request.GET.numRecs}}" /> 
+            <input class="submitBtn" type="submit" name="submit" value="Submit" />
+            <div>
+                <input class="submitBtn" type="submit" name="refreshRecs" value="Refresh Recommendations" />
+            </div>
+        </form>
+    
+        {% if predictionsMovies|length != 0 %} 
+            <ul class="movieList">
+                {% for movie in predictionsMovies %}
                 <li>
+                    <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 80px;height: 120px;">
                     <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
-                    <ul>
-                        <li>{{ movieRatingDict|get_item:movie.movieID }}</li>
-                    </ul>
                 </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p><i>Looks like you haven't rated any movies yet!</i> Click <a href="index/" target = blank> here</a> to start rating!</p>
-    {% endif %}
-</div>
-
-<div>
-    <h2>Recommended movies based on your ratings:</h2>
-
-    <form action="{% url 'homepage' %}" method="GET" value="{{request.GET.numRecs}}">
-        Number of Recommendations:<input type="text" name="numRecs" value={{request.GET.numRecs}} />
-        <input type="submit" name="refreshRecs" value="Refresh Recommendations" />
-    </form>
-
-    {% if predictionsMovies|length != 0 %} 
-        <ul>
-            {% for movie in predictionsMovies %}
-            <li>
-                <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p><i>Rate some movies first to see your recommendations!</i> Click <a href="index/" target = blank> here</a> to start rating!</p>
-    {% endif %}
-</div>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p><i>Rate some movies first to see your recommendations!</i> Click <a href="{% url 'index' %}"> here</a> to start rating!</p>
+        {% endif %}
+    </div>
+</html>

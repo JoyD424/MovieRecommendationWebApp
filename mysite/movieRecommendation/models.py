@@ -6,6 +6,8 @@ class Movie(models.Model):
     movieID = models.IntegerField(default = 0)
     movieTitle = models.CharField(max_length = 200)
     movieGenres = models.CharField(max_length = 200)
+    moviePosterURL = models.CharField(default='', max_length = 200)
+    movieBackdropURL = models.CharField(default='', max_length = 200)
 
 
 

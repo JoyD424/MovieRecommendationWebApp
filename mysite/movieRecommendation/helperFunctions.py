@@ -1,7 +1,35 @@
 from django.contrib.auth.models import User
 from .models import Movie, Rating, RecommendationHistory
 from django.shortcuts import render, get_object_or_404, redirect
+from .TMDB_API import getMovieImageURLs
 import string
+
+
+
+# Check if a user has rated any movies
+# Int -> Bool
+def hasRatedMovies(userID):
+    if Rating.objects.filter(userID = userID):
+        return True
+    return False
+
+
+# Check if a movie object has assigned poster and backdrop urls.
+# If not, assign them and return the urls.
+# Movie -> 
+def assignImageURLs(movie):
+    if movie.moviePosterURL == '' and movie.movieBackdropURL == '':
+        posterURL, backdropURl = getMovieImageURLs(movie.movieTitle)
+        movie.moviePosterURL = posterURL
+        movie.movieBackdropURL = backdropURl
+        movie.save()
+    
+    else:
+        print("error")
+
+    return
+
+
 
 # Check if a RecommendationHistory object already exists
 def alreadyHasRecHistory(userID):
@@ -38,6 +66,19 @@ def getMoviesList(listTuple, dict):
         listMovie.append(movie)
         if movie.movieID not in dict.keys():
             dict[movie.movieID] = tuple[1]
+
+    """print(dict)
+    print(movie.movieID for movie in listMovie)"""
+    return listMovie
+
+
+
+# List Int -> List Movie
+def getPredMoviesList(listID):
+    listMovie = []
+    for id in listID:
+        movie = get_object_or_404(Movie, movieID = id)
+        listMovie.append(movie)
 
     """print(dict)
     print(movie.movieID for movie in listMovie)"""

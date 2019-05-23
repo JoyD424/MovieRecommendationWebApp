@@ -1,17 +1,137 @@
-<div>
-    <div>
-        <a href="{% url 'homepage' %}"> <h3>Go back to homepage</h3> </a>
-    </div>
+{% load static %}
+
+<head>
+    <style>
+        /* Style for header */
+        html * {
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        }
+
+        /* Style for main header */
+        .header {
+            text-align: center;
+            color: #02A4D3;
+            background-color: black;
+            padding: 40px;
+            margin: 0px;
+            font-style: oblique;
+        }
+
+        /* Style for Toolbar + Dropdown Menu */
+        .toolbar {
+            list-style-type: none;
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            padding: 10px 0px 10px 0px;
+            flex-direction: row;
+            overflow: hide;
+            background-color: white;
+            color: lightseagreen;
+            border-bottom-style: groove;
+        }
+        li .greeting {
+            padding: 14px 16px;
+            text-decoration: none;
+        } 
+        .dropdown {
+            position: relative;
+            display: inline;
+        }
+        .dropdown-content {
+            display: none;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: #2ECC40;
+            padding: 14px 16px 14px 16px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+            position: absolute;
+            text-align: center;
+        }
+
+        /* Style for results */
+        .resultDeclaration {
+            color: seagreen;
+            display: flex;
+            flex-direction: column;
+        }
+        .allResults {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto auto;
+            justify-content: space-evenly;
+        }
+        .resultItem {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .resultItem a {
+            text-decoration: none;
+            font-style: oblique;
+            color: navy;
+        }
+        a img {
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Style for buttons and forms */
+        .input {
+            margin: 20px 10px 20px 10px;
+        }
+        .btns {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+        }
+        .alphabetBtn {
+            /* margin: 8px;
+            font-size: 14px;
+            border: none; */
+            background-color: cornflowerblue;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+
+
+<html>
+    <h1 class="header">Movie Index</h1>
+
+    <ul class="toolbar">
+            <li class="greeting"><p>Hello, {{request.user.username}}</p></li>
+            <li class="dropdown">
+                <p>Menu</p>
+                <div class="dropdown-content">
+                    <a href="{% url 'homepage' %}"> Home</a>
+                    <a href="logOut/" target = blank> Log Out</a>
+                </div>
+            </li>
+    </ul>
 
     <div>
         <form action="{% url 'index' %}" method="GET" value="{{request.GET.q}}">
-            <input type="text" name="q" value="{{request.GET.q}}" placeholder="Search"/>
-            <input type="submit" name="submitTitle" value="Search by Title"/>
-            <input type="submit" name="submitGenre" value="Search by Genre"/>
+            <input class="input" type="text" name="q" value="{{request.GET.q}}" placeholder="Search"/>
+            <input class="input" type="submit" name="submitTitle" value="Search by Title"/>
+            <input class="input" type="submit" name="submitGenre" value="Search by Genre"/>
 
-            <div>
+            <div class="btns">
                 {% for capitalLetter in upperLetters %}
-                <input type="submit" name="submitStartsWith" value={{capitalLetter}} />
+                <input class="alphabetBtn" type="submit" name="submitStartsWith" value={{capitalLetter}} />
                 {% endfor %}
             </div>
 
@@ -20,11 +140,12 @@
     
     {% if request.GET.q != '' and submitbutton not in upperLetters%}
         {% if results %}
-            <h2>Results for "{{ request.GET.q }}"</h2>
-            <ul>
+            <h2 class="resultDeclaration">Showing results for "{{ request.GET.q }}"</h2>
+            <ul class="allResults">
                 {% for movie in results %}
-                <li>
+                <li class="resultItem">
                     <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                    <a href="{% url 'movieDetail' movie.movieID %}"> <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 80px;height: 120px;"> </a>
                 </li>
                 {% endfor %}
             </ul>
@@ -33,23 +154,25 @@
         {% endif %}
 
     {% elif submitbutton in upperLetters%}
-        <h2>{{ submitbutton }}</h2>    
-        <ul>
+        <h2 class="resultDeclaration">{{ submitbutton }}</h2>    
+        <ul class="allResults">
             {% for movie in results %}
-            <li>
+            <li class="resultItem">
                 <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                <a href="{% url 'movieDetail' movie.movieID %}"> <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 80px;height: 120px;"> </a>
             </li>
             {% endfor %}
         </ul>
     
     {% else %}
-        <ul>
+        <h2 class="resultDeclaration">Showing all movies</h2>
+        <ul class="allResults">
             {% for movie in results %}
-            <li>
+            <li class="resultItem">
                 <a href="{% url 'movieDetail' movie.movieID %}"> <p>{{ movie.movieTitle }}</p> </a>
+                <a href="{% url 'movieDetail' movie.movieID %}"> <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 80px;height: 120px;"> </a>
             </li>
             {% endfor %}
         </ul>
     {% endif %}
-
-</div>
+</html>

@@ -1,22 +1,169 @@
 {% load movieRecommendation_extras %}
+<head>
+    <style>
+        /* Style for header */
+        html * {
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        }
 
-<h1>{{ movie.movieTitle }}</h1>
+        /* Style for main header */
+        .header {
+            text-align: center;
+            color: rgb(44, 248, 170);
+            background: rgba(0, 0, 0, .6);
+            padding: 40px;
+            margin: 0px;
+            font-style: oblique;
+        }
 
-<h2>{{ movie.movieGenres }}</h2>
+        /* Style for Toolbar + Dropdown Menu */
+        .toolbar {
+            list-style-type: none;
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            padding: 10px 0px 10px 0px;
+            flex-direction: row;
+            overflow: hide;
+            background: rgba(255, 255, 255, .9);
+            color: lightseagreen;
+            border-bottom-style: groove;
+        }
+        li .greeting {
+            padding: 14px 16px;
+            text-decoration: none;
+        } 
+        .dropdown {
+            position: relative;
+            display: inline;
+        }
+        .dropdown-content {
+            display: none;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: #2ECC40;
+            padding: 14px 16px 14px 16px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+            position: absolute;
+            text-align: center;
+        }
 
-<div>
-    {% if rating.rating == 0 %}
-        <p>Have you watched this movie? Rate it here!</p>
-    {% else %}
-        <p>You previously gave this movie a rating of {{ rating.rating }}.</p>
-        <p>You can change it here!</p>
-    {% endif %}
-    <form action="{% url 'movieDetail' movie.movieID %}" method="post">
-        {% csrf_token %}
-        {% for int in 5|tags_range %}
-            <input type="radio" name="rating" id="{{ int }}" value="{{ int }}" required>
-            <label for="{{ int }}">{{ int }}</label><br>
-        {% endfor %}
-        <input type="submit" value="Confirm Rating">
-    </form>
-</div>
+        /* Style for movie details */
+        body {
+            background-image: url("https://image.tmdb.org/t/p/w500{{movie.movieBackdropURL}}");
+            background-size: cover;
+        }
+        .transparent {
+            background: rgba(255, 255, 255, .5);
+            margin: 0;
+            padding: 40px 0px 100px 0px;
+        }
+        .genres {
+            text-align: center;
+            color: purple;
+            padding: 30px;
+            
+        }
+        .detailBody {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+        .info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+        }
+        .message {
+            font-size: 20px;
+            color: purple;
+            font-weight: bold;
+            font-style: oblique;
+            padding: 30px 10px 20px 10px;
+        }
+
+        /* Style for buttons and forms */
+        form {
+            margin: 20px 10px 20px 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .choice {
+            display: flex;
+            flex-direction: row;
+            color: purple;
+        }
+        label {
+            font-size: 20px;
+        }
+        .submit {
+            /* margin: 8px;
+            font-size: 14px;
+            border: none; */
+            background-color: cornflowerblue;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+
+
+
+
+<html>
+    <h1 class="header">{{ movie.movieTitle }}</h1>
+
+    <ul class="toolbar">
+            <li class="greeting"><p>Hello, {{request.user.username}}</p></li>
+            <li class="dropdown">
+                <p>Menu</p>
+                <div class="dropdown-content">
+                    <a href="{% url 'index' %}">Movie Index</a>
+                    <a href="{% url 'homepage' %}"> Home</a>
+                    <a href="{% url 'logOut' %}" target = blank> Log Out</a>
+                </div>
+            </li>
+    </ul>
+    
+    <body>
+        <div class="transparent">
+            <h2 class="genres">Genre(s): {{ movie.movieGenres }}</h2>
+            <div class="detailBody">
+                <img src="https://image.tmdb.org/t/p/w500{{movie.moviePosterURL}}" alt="No Image" style="widows: 380px;height: 460px;">
+                <div class="info">
+                    {% if rating.rating == 0 %}
+                        <p class="message">Have you watched this movie? Rate it here!</p>
+                    {% else %}
+                        <p class="message">You previously gave this movie a rating of {{ rating.rating }}.</p>
+                        <p class="message">You can change it here!</p>
+                    {% endif %}
+                    <form action="{% url 'movieDetail' movie.movieID %}" method="post">
+                        {% csrf_token %}
+                        {% for int in 5|tags_range %}
+                            <div class="choice">
+                                <input type="radio" name="rating" id="{{ int }}" value="{{ int }}" required>
+                                <label for="{{ int }}">{{ int }}</label><br>
+                            </div>
+                        {% endfor %}
+                        <input class="submit" type="submit" value="Confirm Rating">
+                    </form>
+                </div> 
+            </div>
+        </div>
+    </body>
+</html>

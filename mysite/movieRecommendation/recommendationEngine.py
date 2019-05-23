@@ -4,10 +4,14 @@ from scipy.sparse.linalg import svds
 from .databaseToDataframe import getMovieDFFromDB, getRatingDFFromDB, getPivotedDataFrame #, getRatingDataFrame, getMovieDataFrame, getPivotedDataFrame2
 import sys
 
+
+
 """ References:
 https://www.analyticsvidhya.com/blog/2018/06/comprehensive-guide-recommendation-engine-python/
 https://beckernick.github.io/matrix-factorization-recommender/
 """
+
+
 
 """ Example:
     ratingsDF = getRatingDataFrame()
@@ -17,25 +21,14 @@ https://beckernick.github.io/matrix-factorization-recommender/
     alreadyRatedList, predictionsList = getRecommendations(predictionsDF, 837, moviesDF, ratingsDF, 10)
 """
 
+
+
 # Int, Int -> List (Int, Int), List (Int, int)
-def runRecEngine(userID, numRecommendations=10):
-
+def runRecEngine(userID): #, numRecommendations=10):
     moviesDF = getMovieDFFromDB()
-    # movies2DF = getMovieDataFrame()
-
     pivotedRatingsDF = getPivotedDataFrame()
-    print(pivotedRatingsDF)
-    """pivotedRatingsDF2 = getPivotedDataFrame2()
-    print(pivotedRatingsDF)
-    print(pivotedRatingsDF2)"""
-
     predictionsDF = getMoviePredictionDataframe(pivotedRatingsDF)
-    """predictionsDF2 = getMoviePredictionDataframe(pivotedRatingsDF2)
-    print(predictionsDF.equals(predictionsDF2))"""
-    print(predictionsDF)
-    # print(predictionsDF2)
-    alreadyRatedList, predictionsList = getRecommendations(predictionsDF, userID, moviesDF, pivotedRatingsDF, numRecommendations)
-    # alreadyRatedList2, predictionsList2 = getRecommendations(predictionsDF2, userID, movies2DF, pivotedRatingsDF2, numRecommendations)
+    alreadyRatedList, predictionsList = getRecommendations(predictionsDF, userID, moviesDF, pivotedRatingsDF) #, numRecommendations)
 
     return alreadyRatedList, predictionsList
 
@@ -52,16 +45,21 @@ def getAlreadyRated(userID):
 # DF -> List (Int, Int)
 def getAlreadyRatedList(userID, originalPivotedRatingsDF):
     try:
-        print(userID)
-        alreadyRatedData = originalPivotedRatingsDF.iloc[[userID - 1], : ] 
-        print(alreadyRatedData)
+        # print(list(originalPivotedRatingsDF.index.values))
+        index = list(originalPivotedRatingsDF.index.values)[userID - 1]
+        print(index)
+        alreadyRatedData = originalPivotedRatingsDF.loc[[index], : ] 
     except IndexError:
         # If the user has not rated any movies
-        return [], []
+        print("Index Error")
+        return []
     columns = list(alreadyRatedData)
+    print(alreadyRatedData)
+    index = list(alreadyRatedData.index.values)[0]
+    print(index)
     alreadyRatedMovies = [] # List (Int, Int) of movieID, rating tuple
     for movieID in columns:
-        rating = int(alreadyRatedData.loc[userID, movieID])
+        rating = int(alreadyRatedData.loc[index, movieID])
         if rating != 0:
             alreadyRatedMovies.append((movieID, rating))
     return alreadyRatedMovies
@@ -72,66 +70,30 @@ def getAlreadyRatedList(userID, originalPivotedRatingsDF):
 # Returns a list of already rated movies (as tuple, where (movieID, rating))
 # Also returns a list of predicted movies that user will like as a tuple where (movieID, predictedRating)
 # DF, int, DF, DF, Int -> List (Int, Int), List (Int, Int)
-def getRecommendations(predictionsDF, userID, moviesDF, originalPivotedRatingsDF, numRecommendations):
-    # Get the movies that the user had rated already
-    """print(userID)
+def getRecommendations(predictionsDF, userID, moviesDF, originalPivotedRatingsDF): #, numRecommendations):
+    # TEST:
     print(originalPivotedRatingsDF)
     print(predictionsDF)
-    print(originalPivotedRatingsDF.iloc[[userID]]) # TEST
-    print(predictionsDF.iloc[[userID - 1]]) # TESt"""
+    # Get the movies that the user had rated already
     alreadyRatedMovies = getAlreadyRatedList(userID, originalPivotedRatingsDF)
-    """try:
-        print(userID)
-        alreadyRatedData = originalPivotedRatingsDF.iloc[[userID - 1], : ] 
-        print(alreadyRatedData)
-    except IndexError:
-        # If the user has not rated any movies
+    if alreadyRatedMovies == []:
+        print("Hasn't rated any movies")
         return [], []
-    columns = list(alreadyRatedData)
-    alreadyRatedMovies = [] # List (Int, Int) of movieID, rating tuple
-    for movieID in columns:
-        rating = int(alreadyRatedData.loc[userID, movieID])
-        if rating != 0:
-            alreadyRatedMovies.append((movieID, rating))"""
-
     # Get movie recommendations for movies the user hasn't seen yet
     newUserID = userID - 1
     userPrediction = predictionsDF.iloc[[newUserID], : ].sort_values(by=newUserID, axis=1, ascending=False)
-    # print(userPrediction) # TEST
-    # print(alreadyRatedMovies) # TEST
     columns = list(userPrediction)
     predictionsList = [] # List (Int, Int) of movieID, rating tuple
-    num = 1
+    # num = 1
     for movieID in columns:
-        if not inList(alreadyRatedMovies, movieID) and num <= numRecommendations:
-            # print("Ok")
-            predictedRating = round(userPrediction[movieID][newUserID], 4) # int(userPrediction.loc[userID - 1, movieID])
+        if not inList(alreadyRatedMovies, movieID): # and num <= numRecommendations:
+            predictedRating = round(userPrediction[movieID][newUserID], 4) 
             predictionsList.append((movieID, predictedRating))
-            num += 1
+            # num += 1
     predictionsList.sort(key = lambda x: x[1], reverse = True)
-
-    # Check to make sure the number of predictions is less than or equal to 
-    # the number of user requested recommendations
-
-    print("Original numRec:", numRecommendations)
-    print(len(predictionsList))
-    print(predictionsList)
-    # numRecommendations = checkPredictionListSize(predictionsList, numRecommendations)
 
     return alreadyRatedMovies, predictionsList # predictionsList[:numRecommendations]
 
-
-
-# Checks to make sure length of predictions is equal to or longer than 
-# the requested amount of recommendations. If not, return the length
-# of the predictions
-# List (Int, Int), Int -> Int
-def checkPredictionListSize(predictionsList, numRecommendations):
-    lenPredictions = len(predictionsList)
-    if lenPredictions < numRecommendations:
-        numRecommendations = lenPredictions
-
-    return numRecommendations
 
 
 # Check if an integer value is in a list
@@ -141,6 +103,7 @@ def inList(list, val):
     if val in dict.keys():
         return True
     return False
+
 
 
 # Get prediction dataframe of the ratings of movies each user might give

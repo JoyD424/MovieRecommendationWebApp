@@ -8,70 +8,78 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Movie, Rating, RecommendationHistory
 from .recommendationEngine import runRecEngine, getAlreadyRated
-from .helperFunctions import alreadyHasRecHistory, convertLstToStr, convertStrToLst, getMoviesList
+from .helperFunctions import * 
 from string import ascii_uppercase
 
 # Global Variable
 UPPERCASE_LETTERS = list(ascii_uppercase)
-
+DEFAULT_NUM_RECS = 10
 
 def homepage(request):
 
     if not request.user.is_authenticated:
         return redirect("logIn")
 
+    if not hasRatedMovies(request.user.id):
+        return redirect("index")
+
     user_id = request.user.id
 
     recHistory = get_object_or_404(RecommendationHistory, userID = user_id)
 
     # If .recommendations haven't been added to object yet
-    if recHistory.recommendations == '':
+    if recHistory.recommendations == '' or (request.method == "GET" and "refreshRecs" in request.GET):
+
+        print("No rec history. Adding one right now") # TEST
         alreadyRatedList, predictionsList = runRecEngine(user_id)
         newPredictions = []
         for tuple in predictionsList:
             newPredictions.append(tuple[0])
         recHistory.recommendations = convertLstToStr(newPredictions)
         recHistory.save()
+
         movieRatingDict = {}
         alreadyRatedMovies = getMoviesList(alreadyRatedList, movieRatingDict)
-        predictionsMovies = getMoviesList(predictionsList, movieRatingDict)
+        predictionsMovies = getMoviesList(predictionsList[:DEFAULT_NUM_RECS], movieRatingDict)
+
         return render(request, 'movieRecommendation/homepage.html', {'alreadyRatedMovies': alreadyRatedMovies, 'predictionsMovies': predictionsMovies, 'movieRatingDict': movieRatingDict})
     
     if request.method == "GET":
+        print("GET request submitted for recs") # TEST
         numRecs = request.GET.get('numRecs')
-        print("NumRecs:", numRecs)
-        if numRecs is None:
-            alreadyRatedList, predictionsList = runRecEngine(user_id)
-            recHistory.recommendations = convertLstToStr(newPredictions)
-            recHistory.save()
-        else:
-            alreadyRatedList, predictionsList = runRecEngine(user_id, int(numRecs))
+        
+        if recHistory.recommendations != '':
+            print("Giving recs based on previous recHistory") # TEST
+            alreadyRatedList = getAlreadyRated(user_id)
+
+            try:
+                numRecs = int(numRecs)
+                print("NumRecs not none:", numRecs) # TEST
+                predictionsList = convertStrToLst(recHistory.recommendations)[:numRecs]
+                print(predictionsList) # TEST
+            except (ValueError, TypeError):
+            # if numRecs is None:
+                predictionsList = convertStrToLst(recHistory.recommendations)[:DEFAULT_NUM_RECS]
+                print("NumRecs:", numRecs) # TEST
+                print(predictionsList) # TEST
+                # alreadyRatedList, predictionsList = runRecEngine(user_id)
+                # recHistory.recommendations = convertLstToStr(predictionsList)
+                # recHistory.save()
+            """else:
+                # alreadyRatedList, predictionsList = runRecEngine(user_id, int(numRecs))
+                print("NumRecs not none:", numRecs) # TEST
+                predictionsList = convertStrToLst(recHistory.recommendations)[:int(numRecs)]
+                print(predictionsList) # TEST"""
         
 
     else:
+        print("Else clause activated") # TEST
         alreadyRatedList = getAlreadyRated(user_id)
-        predictionsList = convertStrToLst(recHistory.recommendations)
+        predictionsList = convertStrToLst(recHistory.recommendations)[:DEFAULT_NUM_RECS]
 
     movieRatingDict = {}
     alreadyRatedMovies = getMoviesList(alreadyRatedList, movieRatingDict)
-    predictionsMovies = getMoviesList(predictionsList, movieRatingDict)
-    """alreadyRatedList, predictionsList = runRecEngine(user_id)
-    alreadyRatedMovies, predictionsMovies = [], []
-    movieRatingDict = {}"""
-
-    """if len(alreadyRatedList) != 0 and len(predictionsList) != 0:
-
-        for tuple in alreadyRatedList:
-            movie = get_object_or_404(Movie, movieID = tuple[0])
-            alreadyRatedMovies.append(movie)
-            if movie.movieID not in movieRatingDict.keys():
-                movieRatingDict[movie.movieID] = tuple[1]
-
-        for tuple in predictionsList:
-            movie = get_object_or_404(Movie, movieID = tuple[0])
-            predictionsMovies.append(movie)
-            if movie.movieID not in movieRatingDict.keys():
-                movieRatingDict[movie.movieID] = tuple[1]"""
+    predictionsMovies = getPredMoviesList(predictionsList)
 
     return render(request, 'movieRecommendation/homepage.html', {'alreadyRatedMovies': alreadyRatedMovies, 'predictionsMovies': predictionsMovies, 'movieRatingDict': movieRatingDict})
 
@@ -95,7 +103,7 @@ def index(request):
             lookups = Q(movieTitle__icontains=query)
 
         elif 'submitGenre' in request.GET:
-            submitbutton = request.GET.get('submitTitle')
+            submitbutton = request.GET.get('submitGenre')
             lookups = Q(movieGenres__icontains=query)
 
         elif 'submitStartsWith' in request.GET:
@@ -160,7 +168,11 @@ def signUp(request):
                 recHistory.save()
     
             login(request, user)
-            return redirect("homepage")
+
+            if not hasRatedMovies(user.id):
+                return redirect("index")
+            else:
+                return redirect("homepage")
         
         else:
             for msg in form.error_messages:
@@ -198,7 +210,11 @@ def logIn(request):
                     recHistory.save()
 
                 login(request, user)
-                return redirect("homepage")
+
+                if not hasRatedMovies(user.id):
+                    return redirect("index")
+                else:
+                    return redirect("homepage")
                 
             else:
                 messages.error(request, "Invalid login attempt")

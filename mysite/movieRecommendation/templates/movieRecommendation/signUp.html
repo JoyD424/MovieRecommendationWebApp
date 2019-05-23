@@ -1,15 +1,48 @@
-{% block content %}
+<head>
+    <style>
+        /* Style for header */
+        html * {
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        }
+
+        .container {
+            border: solid;
+            display: flex;
+            flex-direction: column;
+            margin: 10px;
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        button {
+            margin: 20px 0px 0px 120px;
+            font-size: 16px;
+        }
+        
+    </style>
+</head>  
+
+
+
+<html>
+    {% block content %}
 
     <div class="container">
         <form method="POST">
             {% csrf_token %}
             {{form}}
-
-            <button style = "background-color:blue; color:white" class = "btn btn-outline-info" type = "submit">Sign Up!</button>
+            <div>
+                <button style = "background-color:blue; color:white" class = "btn btn-outline-info" type = "submit">Sign Up!</button>
+            </div>
+            
         </form>
 
-        If you already have an account, <a href = "/movieRecommendation/logIn/" target = "blank"><strong>login here</strong></a>.
+        <p>If you already have an account, <a href = "/movieRecommendation/logIn/" target = "blank"><strong>login here</strong></a>!</p>
 
     </div>
 
-{% endblock %}
+    {% endblock %}
+</html>
