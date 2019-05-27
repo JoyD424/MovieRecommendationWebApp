@@ -20,8 +20,17 @@ Pandas
 
 
 ## Preview
+### User Homepage:
+Displays the movies rated by and recommended for the user. 
+This page can only be accessed if the user is verified and has rated movies. 
+The user will be redirected to the index if no movies have been rated yet.
+![](images/homepageRatedMovies.png)
+![](images/homepageRecs.png)
 
-![](https://github.com/JoyD424/MovieRecommendationWebApp/images/homepageRatedMovies.png)
-![](https://github.com/JoyD424/MovieRecommendationWebApp/images/homepageRecs.png)
-![](https://github.com/JoyD424/MovieRecommendationWebApp/images/indexSearch.png)
-![](https://github.com/JoyD424/MovieRecommendationWebApp/images/movieDetail.png)
+### Index:
+Displays all movies stored in the database. The user can sort through the results by genre, title, etc.
+![](images/indexSearch.png)
+
+### Movie Specifics:
+Displays details for a specific movie, and allows the user to rate or modify their rating to the movie.
+![](images/movieDetail.png)
