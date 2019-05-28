@@ -1,5 +1,6 @@
 # Movie Recommender
 A web application that uses matrix factorization to recommend movies to users. Features include user login, logout, and signup capabilities.  
+  
 This project makes use of the following: Django web framework, SQLite database, MovieLens 1M Dataset, & TMDB API.   
   
 
